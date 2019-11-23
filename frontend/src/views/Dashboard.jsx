@@ -22,6 +22,8 @@ import classNames from "classnames";
 import { Line, Bar } from "react-chartjs-2";
 //Service API
 import api from '../service/api';
+//Moment para usar na conversão de datas
+import Moment from 'moment';
 
 // reactstrap components
 import {
@@ -57,12 +59,13 @@ class Dashboard extends React.Component {
     super(props);
     this.state = {
       bigChartData: "data1",
-      temperatures: []
+      temperatures: [],
+      humidities: [],
+      times: []
     };
     this.getLast();
   }
   componentDidMount() {
-    
     this.interval = setInterval(() => this.getLast(), 1000);
   }
   componentWillUnmount() {
@@ -75,9 +78,31 @@ class Dashboard extends React.Component {
     });
   };
   async getLast(){
-    const response = await api.get('/sensor/getLastTemperatures');
-    var arrayInverted = response.data;
-    this.setState({temperatures: arrayInverted.reverse()});
+    const response = await api.get('/sensor/getLastTemperaturesHumidities');
+
+    //Vetor para armazenar as temperaturas somente
+    var arrayTemperatures = [];
+    //Recuperando os dados retornados pelo GET e filtando para retornar somente o campo 'measuredTemperature'
+    // eslint-disable-next-line
+    response.data.map(val => {arrayTemperatures.push(val.measuredTemperature)});
+    //Atribuindo ao state.temperatures o valor do vetor invertido
+    this.setState({temperatures: arrayTemperatures.reverse()});
+
+     //Vetor para armazenar as temperaturas somente
+     var arrayHumidities = [];
+     //Recuperando os dados retornados pelo GET e filtando para retornar somente o campo 'measuredTemperature'
+     // eslint-disable-next-line
+     response.data.map(val => {arrayHumidities.push(val.measuredHumidity)});
+     //Atribuindo ao state.temperatures o valor do vetor invertido
+     this.setState({humidities: arrayHumidities.reverse()});
+
+    //Vetor para armazenar os tempos somente
+    var arrayTimes = [];
+    //Filtrando somente o valor do horário
+    // eslint-disable-next-line
+    response.data.map(val => {arrayTimes.push(Moment(val.createdAt).format("HH:mm:ss"))});
+    //Invertendo os valores da direita para esquerda
+    this.setState({times: arrayTimes.reverse()});
   }
   render() {
     
@@ -107,7 +132,7 @@ class Dashboard extends React.Component {
               zeroLineColor: "transparent"
             },
             ticks: {
-              suggestedMin: 10,
+              suggestedMin: 20,
               suggestedMax: 50,
               padding: 10,
               fontColor: "#9a9a9a"
@@ -145,23 +170,10 @@ class Dashboard extends React.Component {
         gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     
         return {
-          labels: [
-            "JAN",
-            "FEB",
-            "MAR",
-            "APR",
-            "MAY",
-            "JUN",
-            "JUL",
-            "AUG",
-            "SEP",
-            "OCT",
-            "NOV",
-            "DEC"
-          ],
+          labels: this.state.times,
           datasets: [
             {
-              label: "My First dataset",
+              label: "Temperature: ",
               fill: true,
               backgroundColor: gradientStroke,
               borderColor: "#1f8ef1",
@@ -175,7 +187,6 @@ class Dashboard extends React.Component {
               pointHoverRadius: 4,
               pointHoverBorderWidth: 15,
               pointRadius: 4,
-              //data: [100, 70, 90, 70, 85, 60, 75, 60, 90, 80, 110, 100]
               data: this.state.temperatures
             }
           ]
@@ -191,23 +202,10 @@ class Dashboard extends React.Component {
         gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     
         return {
-          labels: [
-            "JAN",
-            "FEB",
-            "MAR",
-            "APR",
-            "MAY",
-            "JUN",
-            "JUL",
-            "AUG",
-            "SEP",
-            "OCT",
-            "NOV",
-            "DEC"
-          ],
+          labels: this.state.times,
           datasets: [
             {
-              label: "My First dataset",
+              label: "Humidity: ",
               fill: true,
               backgroundColor: gradientStroke,
               borderColor: "#1f8ef1",
@@ -221,7 +219,7 @@ class Dashboard extends React.Component {
               pointHoverRadius: 4,
               pointHoverBorderWidth: 15,
               pointRadius: 4,
-              data: [80, 120, 105, 110, 95, 105, 90, 100, 80, 95, 70, 120]
+              data: this.state.humidities
             }
           ]
         };
@@ -331,7 +329,7 @@ class Dashboard extends React.Component {
                             type="radio"
                           />
                           <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                            Purchases
+                            Humidity
                           </span>
                           <span className="d-block d-sm-none">
                             <i className="tim-icons icon-gift-2" />
