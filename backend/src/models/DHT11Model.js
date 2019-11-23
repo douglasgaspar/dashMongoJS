@@ -10,11 +10,11 @@ const DHT11Schema = new mongoose.Schema({
         type: String,
         require: true,
     },
-    measureTemperature: {
+    measuredTemperature: {
         type: Number,
         require: true,
     },
-    measureHumidity: {
+    measuredHumidity: {
         type: Number,
         require: true,
     },

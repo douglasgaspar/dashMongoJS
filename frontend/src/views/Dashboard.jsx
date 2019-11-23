@@ -75,7 +75,7 @@ class Dashboard extends React.Component {
     });
   };
   async getLast(){
-    const response = await api.get('/sensor/getTemperatures');
+    const response = await api.get('/sensor/getLastTemperatures');
     var arrayInverted = response.data;
     this.setState({temperatures: arrayInverted.reverse()});
   }
@@ -284,8 +284,8 @@ class Dashboard extends React.Component {
                 <CardHeader>
                   <Row>
                     <Col className="text-left" sm="6">
-                      <h5 className="card-category">Total Shipments</h5>
-                      <CardTitle tag="h2">Performance</CardTitle>
+                      <h5 className="card-category">Valores em tempo real</h5>
+                      <CardTitle tag="h2">Monitoramento</CardTitle>
                     </Col>
                     <Col sm="6">
                       <ButtonGroup
@@ -309,7 +309,7 @@ class Dashboard extends React.Component {
                             type="radio"
                           />
                           <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                            Accounts
+                            Temperatura
                           </span>
                           <span className="d-block d-sm-none">
                             <i className="tim-icons icon-single-02" />
