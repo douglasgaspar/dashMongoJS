@@ -24,6 +24,8 @@ import { Line, Bar } from "react-chartjs-2";
 import api from '../service/api';
 //Moment para usar na conversão de datas
 import Moment from 'moment';
+//Notification
+import NotificationAlert from "react-notification-alert";
 
 // reactstrap components
 import {
@@ -60,13 +62,16 @@ class Dashboard extends React.Component {
     this.state = {
       bigChartData: "data1",
       temperatures: [],
+      temperatureTimes: [],
       humidities: [],
-      times: []
+      HumidityTimes: [],
+      luminosities: [],
+      LuminosityTimes: [],
     };
     this.getLast();
   }
   componentDidMount() {
-    this.interval = setInterval(() => this.getLast(), 1000);
+    this.interval = setInterval(() => this.getLast(), 3000);
   }
   componentWillUnmount() {
     clearInterval(this.interval);
@@ -78,31 +83,46 @@ class Dashboard extends React.Component {
     });
   };
   async getLast(){
-    const response = await api.get('/sensor/getLastTemperaturesHumidities');
+    //Requisitando últimas temperaturas
+    const responseT = await api.get('/sensor/getLastMeasurements?sid=5ddbd3efe5658e1d98470719');
 
     //Vetor para armazenar as temperaturas somente
     var arrayTemperatures = [];
     //Recuperando os dados retornados pelo GET e filtando para retornar somente o campo 'measuredTemperature'
     // eslint-disable-next-line
-    response.data.map(val => {arrayTemperatures.push(val.measuredTemperature)});
+    responseT.data.map(val => {arrayTemperatures.push(val.measuredValue)});
     //Atribuindo ao state.temperatures o valor do vetor invertido
     this.setState({temperatures: arrayTemperatures.reverse()});
 
-     //Vetor para armazenar as temperaturas somente
+    var arrayTimesTemperature = [];
+    // eslint-disable-next-line
+    responseT.data.map(val => {arrayTimesTemperature.push(Moment(val.createdAt).format("HH:mm:ss"))});
+    this.setState({temperatureTimes: arrayTimesTemperature.reverse()});
+
+
+     //Requisitando últimas umidades
+     const responseH = await api.get('/sensor/getLastMeasurements?sid=5ddbd3fbe5658e1d9847071a');
      var arrayHumidities = [];
-     //Recuperando os dados retornados pelo GET e filtando para retornar somente o campo 'measuredTemperature'
      // eslint-disable-next-line
-     response.data.map(val => {arrayHumidities.push(val.measuredHumidity)});
-     //Atribuindo ao state.temperatures o valor do vetor invertido
+     responseH.data.map(val => {arrayHumidities.push(val.measuredValue)});
      this.setState({humidities: arrayHumidities.reverse()});
 
-    //Vetor para armazenar os tempos somente
-    var arrayTimes = [];
-    //Filtrando somente o valor do horário
-    // eslint-disable-next-line
-    response.data.map(val => {arrayTimes.push(Moment(val.createdAt).format("HH:mm:ss"))});
-    //Invertendo os valores da direita para esquerda
-    this.setState({times: arrayTimes.reverse()});
+      var arrayTimesHumidity = [];
+      // eslint-disable-next-line
+      responseH.data.map(val => {arrayTimesHumidity.push(Moment(val.createdAt).format("HH:mm:ss"))});
+      this.setState({HumidityTimes: arrayTimesHumidity.reverse()});
+
+      //Requisitando últimas luminosidades
+     const responseL = await api.get('/sensor/getLastMeasurements?sid=5ddc0ab38d7da1347c8b5b2c');
+     var arrayLuminosities = [];
+     // eslint-disable-next-line
+     responseL.data.map(val => {arrayLuminosities.push(val.measuredValue)});
+     this.setState({luminosities: arrayLuminosities.reverse()});
+
+      var arrayTimeLuminosities = [];
+      // eslint-disable-next-line
+      responseL.data.map(val => {arrayTimeLuminosities.push(Moment(val.createdAt).format("HH:mm:ss"))});
+      this.setState({LuminosityTimes: arrayTimeLuminosities.reverse()});   
   }
   render() {
     
@@ -170,7 +190,7 @@ class Dashboard extends React.Component {
         gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     
         return {
-          labels: this.state.times,
+          labels: this.state.temperatureTimes,
           datasets: [
             {
               label: "Temperature: ",
@@ -202,7 +222,7 @@ class Dashboard extends React.Component {
         gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     
         return {
-          labels: this.state.times,
+          labels: this.state.HumidityTimes,
           datasets: [
             {
               label: "Humidity: ",
@@ -234,23 +254,10 @@ class Dashboard extends React.Component {
         gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     
         return {
-          labels: [
-            "JAN",
-            "FEB",
-            "MAR",
-            "APR",
-            "MAY",
-            "JUN",
-            "JUL",
-            "AUG",
-            "SEP",
-            "OCT",
-            "NOV",
-            "DEC"
-          ],
+          labels: this.state.LuminosityTimes,
           datasets: [
             {
-              label: "My First dataset",
+              label: "Luminosity: ",
               fill: true,
               backgroundColor: gradientStroke,
               borderColor: "#1f8ef1",
@@ -264,7 +271,7 @@ class Dashboard extends React.Component {
               pointHoverRadius: 4,
               pointHoverBorderWidth: 15,
               pointRadius: 4,
-              data: [60, 80, 65, 130, 80, 105, 90, 130, 70, 115, 60, 130]
+              data: this.state.luminosities
             }
           ]
         };
@@ -276,6 +283,9 @@ class Dashboard extends React.Component {
     return (
       <>
         <div className="content">
+        <div className="react-notification-alert-container">
+            <NotificationAlert ref="notificationAlert" />
+          </div>
           <Row>
             <Col xs="12">
               <Card className="card-chart">
@@ -351,7 +361,7 @@ class Dashboard extends React.Component {
                             type="radio"
                           />
                           <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                            Sessions
+                            Luminosity
                           </span>
                           <span className="d-block d-sm-none">
                             <i className="tim-icons icon-tap-02" />
